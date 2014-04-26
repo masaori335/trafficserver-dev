@@ -1,63 +1,80 @@
+# ubuntu 14.04 (Trusty Tahr)
 FROM ubuntu
 
-RUN echo "deb http://jp.archive.ubuntu.com/ubuntu/ saucy main restricted\n\
-deb-src http://jp.archive.ubuntu.com/ubuntu/ saucy main restricted\n\
-deb http://jp.archive.ubuntu.com/ubuntu/ saucy-updates main restricted\n\
-deb-src http://jp.archive.ubuntu.com/ubuntu/ saucy-updates main restricted\n\
-deb http://jp.archive.ubuntu.com/ubuntu/ saucy universe\n\
-deb-src http://jp.archive.ubuntu.com/ubuntu/ saucy universe\n\
-deb http://jp.archive.ubuntu.com/ubuntu/ saucy-updates universe\n\
-deb-src http://jp.archive.ubuntu.com/ubuntu/ saucy-updates universe\n\
-deb http://jp.archive.ubuntu.com/ubuntu/ saucy multiverse\n\
-deb-src http://jp.archive.ubuntu.com/ubuntu/ saucy multiverse\n\
-deb http://jp.archive.ubuntu.com/ubuntu/ saucy-updates multiverse\n\
-deb-src http://jp.archive.ubuntu.com/ubuntu/ saucy-updates multiverse\n\
-deb http://jp.archive.ubuntu.com/ubuntu/ saucy-backports main restricted universe multiverse\n\
-deb-src http://jp.archive.ubuntu.com/ubuntu/ saucy-backports main restricted universe multiverse\n\
-deb http://security.ubuntu.com/ubuntu saucy-security main restricted\n\
-deb-src http://security.ubuntu.com/ubuntu saucy-security main restricted\n\
-deb http://security.ubuntu.com/ubuntu saucy-security universe\n\
-deb-src http://security.ubuntu.com/ubuntu saucy-security universe\n\
-deb http://security.ubuntu.com/ubuntu saucy-security multiverse\n\
-deb-src http://security.ubuntu.com/ubuntu saucy-security multiverse\n"> /etc/apt/sources.list
+RUN echo "deb http://jp.archive.ubuntu.com/ubuntu/ trusty main restricted\n                             \
+deb-src http://jp.archive.ubuntu.com/ubuntu/ trusty main restricted\n                                   \
+deb http://jp.archive.ubuntu.com/ubuntu/ trusty-updates main restricted\n                               \
+deb-src http://jp.archive.ubuntu.com/ubuntu/ trusty-updates main restricted\n                           \
+deb http://jp.archive.ubuntu.com/ubuntu/ trusty universe\n                                              \
+deb-src http://jp.archive.ubuntu.com/ubuntu/ trusty universe\n                                          \
+deb http://jp.archive.ubuntu.com/ubuntu/ trusty-updates universe\n                                      \
+deb-src http://jp.archive.ubuntu.com/ubuntu/ trusty-updates universe\n                                  \
+deb http://jp.archive.ubuntu.com/ubuntu/ trusty multiverse\n                                            \
+deb-src http://jp.archive.ubuntu.com/ubuntu/ trusty multiverse\n                                        \
+deb http://jp.archive.ubuntu.com/ubuntu/ trusty-updates multiverse\n                                    \
+deb-src http://jp.archive.ubuntu.com/ubuntu/ trusty-updates multiverse\n                                \
+deb http://jp.archive.ubuntu.com/ubuntu/ trusty-backports main restricted universe multiverse\n         \
+deb-src http://jp.archive.ubuntu.com/ubuntu/ trusty-backports main restricted universe multiverse\n     \
+deb http://security.ubuntu.com/ubuntu trusty-security main restricted\n                                 \
+deb-src http://security.ubuntu.com/ubuntu trusty-security main restricted\n                             \
+deb http://security.ubuntu.com/ubuntu trusty-security universe\n                                        \
+deb-src http://security.ubuntu.com/ubuntu trusty-security universe\n                                    \
+deb http://security.ubuntu.com/ubuntu trusty-security multiverse\n                                      \
+deb-src http://security.ubuntu.com/ubuntu trusty-security multiverse\n"                                 \
+> /etc/apt/sources.list
 
 RUN apt-get update
 
-# NOTE: packages which required by trafficserver
+RUN apt-get install -y          \
+            git                 \
+            gcc                 \
+            autoconf            \
+            automake            \
+            pkg-config          \
+            make                \
+            libtool             \
+            libpcre3-dev        \
+            libcap-dev          \
+            libncurses5-dev     \
+            openssl             \
+            tcl-dev             \
+            expat               \
+            flex                \
+            hwloc               \
+            curl                \
+            zlib1g-dev          \
+            libcunit1-dev       \
+            libevent-dev        \
+            libssl-dev          \
+            libxml2-dev         \
+            libjansson-dev      \
+            libjemalloc-dev
 
-RUN apt-get install -y		\
-    	    build-essential	\
-	    git			\
-	    autoconf		\
-	    automake		\
-	    pkg-config		\
-	    libtool		\
-	    make		\
-	    openssl		\
-	    tcl			\
-	    expat		\
-	    libpcre3-dev	\
-	    libcap-dev		\
-	    flex		\
-	    hwloc		\
-	    curl
+WORKDIR /opt
 
-# RUN apt-get install -y libcurses5-dev
+RUN git clone --depth 1 https://github.com/tatsuhiro-t/spdylay.git
+RUN cd spdylay &&       \
+    autoreconf -i &&    \
+    automake &&         \
+    autoconf &&         \
+    ./configure &&      \
+    make &&             \
+    make install
 
-# TODO : download source and build libspdylay
-# TODO : download source and build libnghttp2
+RUN git clone --depth 1 https://github.com/tatsuhiro-t/nghttp2.git
+RUN cd nghttp2 &&               \
+    autoreconf -i &&            \
+    automake &&                 \
+    autoconf &&                 \
+    ./configure --enable-app && \
+    make &&                     \
+    make install
 
-# NOTE: packages which required by nghttp2 app
-
-RUN apt-get install -y \
-	    zlib1g-dev \
-	    libcunit1-dev \
-	    libevent-dev \
-	    libssl-dev \
-	    libxml2-dev \
-	    libjansson-dev \
-	    libjemalloc-dev
-
-# TODO : build nghttp and h2load
-
-# TODO : download source and build trafficserver
+RUN git clone --depth 1 https://github.com/apache/trafficserver.git
+RUN cd trafficserver &&                 \
+    git submodule update --depth 1 &&   \
+    autoreconf -if &&                   \
+    ./configure --enable-spdy &&        \
+    make &&                             \
+    make check &&                       \
+    make install
