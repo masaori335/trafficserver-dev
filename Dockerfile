@@ -52,6 +52,8 @@ RUN apt-get install -y          \
 
 WORKDIR /opt
 
+RUN ldconfig
+
 RUN git clone --depth 1 https://github.com/tatsuhiro-t/spdylay.git
 RUN cd spdylay &&       \
     autoreconf -i &&    \
