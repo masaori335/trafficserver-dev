@@ -80,3 +80,6 @@ RUN cd trafficserver &&                 \
     make &&                             \
     make check &&                       \
     make install
+
+RUN ldconfig
+CMD service rsyslog start
