@@ -54,6 +54,12 @@ WORKDIR /opt
 
 RUN ldconfig
 
+RUN git clone --depth 1 https://github.com/openssl/openssl.git
+RUN cd openssl &&           \
+    ./config shared zlib && \
+    make &&                 \
+    make install
+
 RUN git clone --depth 1 https://github.com/tatsuhiro-t/spdylay.git
 RUN cd spdylay &&       \
     autoreconf -i &&    \
